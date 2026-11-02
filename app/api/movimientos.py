@@ -1,15 +1,10 @@
 from app.services import movimiento_service
 
-from datetime import datetime
-
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.database.dependencies import get_db
-from app.models.movimiento import Movimiento
 from app.schemas.movimiento import MovimientoCreate
-
-from fastapi import HTTPException
 
 from pydantic import BaseModel
 
@@ -61,15 +56,7 @@ def listar_movimientos(
         "movimientos": movimientos,
     }
 
-@router.get("/{movimiento_id}")
-def obtener_movimiento(
-    movimiento_id: int,
-    db: Session = Depends(get_db),
-):
-    return movimiento_service.obtener_movimiento(
-        db=db,
-        movimiento_id=movimiento_id,
-    )
+
 
 @router.delete("/{movimiento_id}")
 def eliminar_movimiento(
@@ -108,6 +95,16 @@ def obtener_resumen_por_categoria(
         db=db,
         mes=mes,
         anio=anio,
+    )
+
+@router.get("/{movimiento_id}")
+def obtener_movimiento(
+    movimiento_id: int,
+    db: Session = Depends(get_db),
+):
+    return movimiento_service.obtener_movimiento(
+        db=db,
+        movimiento_id=movimiento_id,
     )
 
 @router.post("/interpretar")

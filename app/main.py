@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 
 from app.api.movimientos import router as movimientos_router
+from app.api.whatsapp import router as whatsapp_router
 from app.database.database import Base, engine
 from app.models.movimiento import Movimiento
 
@@ -14,7 +15,7 @@ app = FastAPI(
 
 
 app.include_router(movimientos_router)
-
+app.include_router(whatsapp_router)
 
 @app.get("/")
 def inicio() -> dict[str, str]:

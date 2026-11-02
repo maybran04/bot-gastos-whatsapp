@@ -4,7 +4,8 @@ from app.schemas.movimiento import MovimientoCreate
 from app.services import movimiento_service
 from app.services.interpretador_service import interpretar_mensaje
 from app.services.intencion_service import detectar_intencion
-from datetime import datetime
+from app.services.periodo_service import detectar_periodo
+
 
 def procesar_mensaje(
     db: Session,
@@ -14,21 +15,25 @@ def procesar_mensaje(
     intencion = detectar_intencion(mensaje)
 
     if intencion == "consulta":
-        ahora = datetime.now()
+        fecha_desde, fecha_hasta, periodo = detectar_periodo(
+            mensaje
+        )
+
         resumen = movimiento_service.obtener_resumen_general(
             db=db,
-            mes=ahora.month,
-            anio=ahora.year,
+            fecha_desde=fecha_desde,
+            fecha_hasta=fecha_hasta,
         )
 
         return {
             "respuesta": (
-                f"Resumen general: "
+                f"Resumen de {periodo}: "
                 f"ingresos ${resumen['total_ingresos']}, "
                 f"gastos ${resumen['total_gastos']} y "
                 f"saldo ${resumen['saldo']}."
             ),
             "intencion": "consulta",
+            "periodo": periodo,
             "resumen": resumen,
         }
 

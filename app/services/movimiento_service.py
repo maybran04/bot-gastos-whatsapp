@@ -69,6 +69,8 @@ def listar_movimientos(
     categoria: str | None = None,
     mes: int | None = None,
     anio: int | None = None,
+    fecha_desde : datetime | None = None,
+    fecha_hasta : datetime | None = None,
 ) -> list[Movimiento]:
     query = db.query(Movimiento)
 
@@ -81,6 +83,16 @@ def listar_movimientos(
         query = query.filter(
             Movimiento.categoria == categoria
         )
+
+    if fecha_desde is not None:
+        query = query.filter(
+        Movimiento.fecha >= fecha_desde
+    )
+
+    if fecha_hasta is not None:
+        query = query.filter(
+        Movimiento.fecha < fecha_hasta
+    )
 
     if mes is not None:
         if mes < 1 or mes > 12:
@@ -130,11 +142,15 @@ def obtener_resumen_general(
     db: Session,
     mes: int | None = None,
     anio: int | None = None,
+    fecha_desde : datetime | None = None,
+    fecha_hasta : datetime | None = None,
 ) -> dict:
     movimientos = listar_movimientos(
         db=db,
         mes=mes,
         anio=anio,
+        fecha_desde=fecha_desde,
+        fecha_hasta=fecha_hasta,
     )
 
     total_ingresos = sum(
