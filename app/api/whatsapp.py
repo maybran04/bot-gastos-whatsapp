@@ -1,4 +1,5 @@
 import os
+import httpx
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import PlainTextResponse
@@ -15,7 +16,10 @@ router = APIRouter(
 
 
 VERIFY_TOKEN = os.getenv("WHATSAPP_VERIFY_TOKEN")
-
+N8N_WEBHOOK_URL = os.getenv(
+    "N8N_WEBHOOK_URL",
+    "http://127.0.0.1:5678/webhook/whatsapp-verificacion",
+)
 
 @router.get("/webhook")
 def verificar_webhook(
@@ -45,68 +49,22 @@ def verificar_webhook(
         detail="Token de verificación incorrecto",
     )
 @router.post("/webhook")
-async def recibir_webhook(
-    request: Request,
-    db: Session = Depends(get_db),
-):
+async def recibir_webhook(request: Request):
     payload = await request.json()
 
-    print("WEBHOOK RECIBIDO:")
+    print("WEBHOOK META RECIBIDO:")
     print(payload)
 
-    try:
-        entry = payload["entry"][0]
-        change = entry["changes"][0]
-        value = change["value"]
+    async with httpx.AsyncClient() as client:
+        respuesta = await client.post(
+            N8N_WEBHOOK_URL,
+            json=payload,
+            timeout=10.0,
+        )
 
-        messages = value.get("messages")
+    respuesta.raise_for_status()
 
-        if not messages:
-            return {
-                "estado": "ignorado",
-                "motivo": "El webhook no contiene un mensaje",
-            }
-
-        message = messages[0]
-
-        numero_usuario = message.get("from")
-        tipo_mensaje = message.get("type")
-
-        if tipo_mensaje != "text":
-            return {
-                "estado": "ignorado",
-                "motivo": f"Tipo de mensaje no soportado: {tipo_mensaje}",
-            }
-
-        texto = message["text"]["body"]
-
-        print("TEXTO RECIBIDO:", texto)
-
-        try:
-            resultado = procesar_mensaje(
-                db=db,
-                mensaje=texto,
-            )
-
-            return {
-                "estado": "procesado",
-                "usuario": numero_usuario,
-                "mensaje": texto,
-                "resultado": resultado,
-            }
-
-        except ValueError as error:
-            print("MENSAJE NO PROCESADO:", str(error))
-
-            return {
-                "estado": "no_procesado",
-                "usuario": numero_usuario,
-                "mensaje": texto,
-                "motivo": str(error),
-            }
-
-    except (KeyError, IndexError, TypeError) as error:
-        return {
-            "estado": "ignorado",
-            "motivo": f"Estructura de webhook no reconocida: {error}",
-        }
+    return {
+        "estado": "reenviado_a_n8n",
+        "status_n8n": respuesta.status_code,
+    }
