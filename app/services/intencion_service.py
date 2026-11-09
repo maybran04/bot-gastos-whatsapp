@@ -14,6 +14,18 @@ def normalizar_texto(texto: str) -> str:
 def detectar_intencion(mensaje: str) -> str:
     texto = normalizar_texto(mensaje)
 
+    palabras_categorias = [
+        "categorias",
+        "categoria",
+        "en que gaste",
+        "gastos por categoria",
+        "gastos por categorias",
+    ]
+
+    for expresion in palabras_categorias:
+        if expresion in texto:
+            return "consulta_categorias"
+
     palabras_consulta = [
         "cuanto gaste",
         "cuanto cobre",

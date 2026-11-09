@@ -138,8 +138,8 @@ def recibir_mensaje(
             mensaje=request.mensaje,
         )
 
-    except ValueError as error:
-        raise HTTPException(
-            status_code=400,
-            detail=str(error),
-        )
+    except ValueError:
+        return {
+            "respuesta":"No pude determinar si es un gasto o un ingreso",
+            "intencion":"no_reconocida",
+        }

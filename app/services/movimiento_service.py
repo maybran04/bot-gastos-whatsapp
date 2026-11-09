@@ -180,12 +180,16 @@ def obtener_resumen_categorias(
     db: Session,
     mes: int | None = None,
     anio: int | None = None,
+    fecha_desde: datetime | None = None,
+    fecha_hasta: datetime | None = None,
 ) -> dict:
     movimientos = listar_movimientos(
         db=db,
         tipo="gasto",
         mes=mes,
         anio=anio,
+        fecha_desde=fecha_desde,
+        fecha_hasta=fecha_hasta,
     )
 
     resumen: dict[str, Decimal] = {}
