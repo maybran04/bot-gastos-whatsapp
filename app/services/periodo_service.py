@@ -79,6 +79,29 @@ def detectar_periodo(
 
         return desde, hasta, "esta semana"
 
+    # MES PASADO
+    if "mes pasado" in texto:
+        if ahora.month == 1:
+            anio_anterior = ahora.year - 1
+            mes_anterior = 12
+        else:
+            anio_anterior = ahora.year
+            mes_anterior = ahora.month - 1
+
+        desde = datetime(
+            anio_anterior,
+            mes_anterior,
+            1,
+        )
+
+        hasta = datetime(
+            ahora.year,
+            ahora.month,
+            1,
+        )
+
+        return desde, hasta, "el mes pasado"
+
     # ESTE MES
     if "este mes" in texto:
         desde = datetime(

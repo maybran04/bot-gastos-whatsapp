@@ -13,6 +13,16 @@ def normalizar_texto(texto: str) -> str:
 
 def detectar_intencion(mensaje: str) -> str:
     texto = normalizar_texto(mensaje)
+    palabras_exportar = [
+        "exportar excel",
+        "descargar excel",
+        "archivo excel",
+        "excel",
+    ]
+
+    for expresion in palabras_exportar:
+        if expresion in texto:
+            return "exportar_excel"
 
     palabras_categorias = [
         "categorias",

@@ -11,6 +11,10 @@ from pydantic import BaseModel
 from app.services.interpretador_service import interpretar_mensaje
 from app.services.bot_service import procesar_mensaje
 
+from fastapi.responses import StreamingResponse
+
+from app.services.excel_service import generar_excel_movimientos
+
 class MensajeRequest(BaseModel):
     mensaje: str
 
@@ -97,6 +101,35 @@ def obtener_resumen_por_categoria(
         anio=anio,
     )
 
+@router.get("/exportar/excel")
+def exportar_movimientos_excel(
+    mes: int | None = None,
+    anio: int | None = None,
+    db: Session = Depends(get_db),
+):
+    movimientos = movimiento_service.listar_movimientos(
+        db=db,
+        mes=mes,
+        anio=anio,
+    )
+
+    archivo = generar_excel_movimientos(
+        movimientos
+    )
+
+    return StreamingResponse(
+        archivo,
+        media_type=(
+            "application/vnd.openxmlformats-officedocument."
+            "spreadsheetml.sheet"
+        ),
+        headers={
+            "Content-Disposition": (
+                'attachment; filename="movimientos.xlsx"'
+            )
+        },
+    )
+
 @router.get("/{movimiento_id}")
 def obtener_movimiento(
     movimiento_id: int,
@@ -143,3 +176,4 @@ def recibir_mensaje(
             "respuesta":"No pude determinar si es un gasto o un ingreso",
             "intencion":"no_reconocida",
         }
+

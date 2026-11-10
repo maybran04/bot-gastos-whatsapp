@@ -1,3 +1,5 @@
+import os
+
 from sqlalchemy.orm import Session
 
 from app.schemas.movimiento import MovimientoCreate
@@ -6,6 +8,24 @@ from app.services.interpretador_service import interpretar_mensaje
 from app.services.intencion_service import detectar_intencion
 from app.services.periodo_service import detectar_periodo
 
+def obtener_url_publica() -> str:
+    url_configurada = os.getenv("PUBLIC_BASE_URL")
+
+    if url_configurada:
+        return url_configurada.rstrip("/")
+
+    codespace_name = os.getenv("CODESPACE_NAME")
+    forwarding_domain = os.getenv(
+        "GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN"
+    )
+
+    if codespace_name and forwarding_domain:
+        return (
+            f"https://{codespace_name}-8000."
+            f"{forwarding_domain}"
+        )
+
+    return "http://127.0.0.1:8000"
 
 def formatear_moneda(valor) -> str:
     texto = f"{valor:,.2f}"
@@ -38,6 +58,23 @@ def procesar_mensaje(
 ) -> dict:
 
     intencion = detectar_intencion(mensaje)
+
+    if intencion == "exportar_excel":
+        url_base = obtener_url_publica()
+
+        url_excel = (
+            f"{url_base}/movimientos/exportar/excel"
+        )
+
+        return {
+            "respuesta": (
+                "📊 Tu archivo Excel está listo:\n\n"
+                f"{url_excel}\n\n"
+                "Tocá el enlace para descargarlo."
+            ),
+            "intencion": "exportar_excel",
+            "url": url_excel,
+        }
 
     # RESUMEN POR CATEGORÍAS
     if intencion == "consulta_categorias":
